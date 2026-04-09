@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { useDropzone } from 'react-dropzone';
+import { useState, useCallback, useRef } from 'react';
 import { Upload, X, Camera, Sun, Home, DoorOpen, Loader2, Image as ImageIcon } from 'lucide-react';
 import { uploadVisualizerImage, type CRMCategory } from '@/lib/api';
 
@@ -29,32 +28,28 @@ export default function ProductUploadStep({ categories, loading, onComplete }: P
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const f = acceptedFiles[0];
+  const handleFileSelect = useCallback((f: File | null) => {
     if (!f) return;
+    if (f.size > 10 * 1024 * 1024) {
+      setError('Die Datei ist zu groß. Maximal 10 MB.');
+      return;
+    }
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(f.type)) {
+      setError('Bitte laden Sie ein JPEG, PNG oder WebP Bild hoch.');
+      return;
+    }
     setFile(f);
     setPreview(URL.createObjectURL(f));
     setError(null);
   }, []);
 
-  const { getRootProps, getInputProps, isDragActive, open: openFilePicker } = useDropzone({
-    onDrop,
-    accept: { 'image/jpeg': [], 'image/png': [], 'image/webp': [] },
-    maxSize: 10 * 1024 * 1024,
-    multiple: false,
-    noClick: false,
-    onDropRejected: (rejections) => {
-      const err = rejections[0]?.errors[0];
-      if (err?.code === 'file-too-large') setError('Die Datei ist zu groß. Maximal 10 MB.');
-      else setError('Bitte laden Sie ein JPEG, PNG oder WebP Bild hoch.');
-    },
-  });
-
   const handleRemove = () => {
     setFile(null);
     setPreview(null);
     setError(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleContinue = async () => {
@@ -127,7 +122,7 @@ export default function ProductUploadStep({ categories, loading, onComplete }: P
       {/* Divider */}
       <div className="h-px bg-white/[0.06]" />
 
-      {/* Section 2: Photo upload */}
+      {/* Section 2: Photo upload — native input, works on all devices */}
       <div>
         <h3 className="text-lg font-heading font-bold text-white mb-1">
           Foto Ihres Hauses
@@ -136,37 +131,29 @@ export default function ProductUploadStep({ categories, loading, onComplete }: P
           Laden Sie ein Foto hoch oder nutzen Sie Ihre Kamera
         </p>
 
+        {/* Hidden native file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className="hidden"
+          onChange={(e) => handleFileSelect(e.target.files?.[0] || null)}
+        />
+
         {!preview ? (
-          <div
-            {...getRootProps()}
-            className={`border border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-300 ${
-              isDragActive
-                ? 'border-brand-red bg-brand-red/5'
-                : 'border-white/15 hover:border-white/30 bg-white/[0.12]'
-            }`}
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="w-full border border-dashed rounded-xl p-8 text-center transition-all duration-300 border-white/15 hover:border-white/30 bg-white/[0.12]"
           >
-            <input {...getInputProps()}  />
             <Upload size={36} className="mx-auto mb-3 text-white/50" />
             <p className="text-sm font-heading font-bold text-white/70 mb-1">
-              {isDragActive ? 'Bild hier ablegen...' : 'Foto hochladen oder aufnehmen'}
+              Foto hochladen oder aufnehmen
             </p>
             <p className="text-white/50 font-body text-xs">
               JPEG, PNG oder WebP — max. 10 MB
             </p>
-
-            {/* Camera button for mobile */}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                openFilePicker();
-              }}
-              className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-lg bg-white/[0.06] border border-white/10 text-white/60 text-xs font-heading hover:bg-white/[0.1] transition-all sm:hidden"
-            >
-              <Camera size={14} />
-              Kamera öffnen
-            </button>
-          </div>
+          </button>
         ) : (
           <div className="space-y-3">
             <div className="relative rounded-xl overflow-hidden border border-white/[0.08]">
