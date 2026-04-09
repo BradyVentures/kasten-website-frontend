@@ -145,7 +145,7 @@ export default function ProductUploadStep({ categories, loading, onComplete }: P
                 : 'border-white/15 hover:border-white/30 bg-white/[0.12]'
             }`}
           >
-            <input {...getInputProps()} capture="environment" />
+            <input {...getInputProps()}  />
             <Upload size={36} className="mx-auto mb-3 text-white/50" />
             <p className="text-sm font-heading font-bold text-white/70 mb-1">
               {isDragActive ? 'Bild hier ablegen...' : 'Foto hochladen oder aufnehmen'}
