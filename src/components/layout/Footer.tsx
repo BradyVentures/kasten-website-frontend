@@ -86,9 +86,10 @@ export default function Footer() {
           <p className="text-white/50 text-sm font-body">
             &copy; {new Date().getFullYear()} {COMPANY.fullName}. Alle Rechte vorbehalten.
           </p>
-          <p className="text-white/70 text-xs font-body">
-            Website von <a href="https://brady-digital.com" target="_blank" rel="noopener noreferrer" className="hover:text-brand-red transition">Brady Digital</a>
-          </p>
+          <div className="flex items-center gap-4 text-xs font-body">
+            <a href="https://kasten-crm.brady-digital.com" target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-white/60 transition">Verwaltung</a>
+            <span className="text-white/70">Website von <a href="https://brady-digital.com" target="_blank" rel="noopener noreferrer" className="hover:text-brand-red transition">Brady Digital</a></span>
+          </div>
         </Container>
       </div>
     </footer>
